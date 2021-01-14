@@ -2,13 +2,17 @@ apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: managed-premium-retain-sc
-provisioner: kubernetes.io/azure-disk
+provisioner: kubernetes.io/azure-disk # it must be specified.(AWSElasticBlockStore, azure-disk, azure-file, GCEPersistentDisk)
 reclaimPolicy: Retain  # Default is Delete, recommended is retain
-volumeBindingMode: WaitForFirstConsumer # Default is Immediate, recommended is WaitForFirstConsumer
-allowVolumeExpansion: true  
+volumeBindingMode: WaitForFirstConsumer # Default is Immediate, recommended is WaitForFirstConsumer. The following plugins support WaitForFirstConsumer with dynamic provisioning: AWSElasticBlockStore, GCEPersistentDisk, AzureDisk
+allowVolumeExpansion: true # allows the users to resize the volume by editing the corresponding PVC object.
+mountOptions:
+  - debug # If the volume plugin does not support mount options but mount options are specified, provisioning will fail.
 parameters:
-  storageaccounttype: Premium_LRS # or we can use Standard_LRS
+  storageaccounttype: Standard_LRS # or we can use Standard_LRS or Premium_LRS
   kind: managed # Default is shared (Other two are managed and dedicated)
+  location: eastus
+  #storageAccount: azure_storage_account_name
 
   
 ##############################################################################
@@ -44,5 +48,10 @@ parameters:
 # Additional Reference
 # https://kubernetes.io/docs/concepts/storage/storage-classes/#azure-disk
 # Managed: When managed used, that disk is persisted for the Lifecycle of the cluster.
-# If we delete cluster, it will delete the disk
+# If we delete cluster, it will delete the disk.
+# all managed disks are created in the same resource group as the cluster.
 ##############################################################################
+# Note-6
+# if you are working on Azure must refer to 
+# https://docs.microsoft.com/en-us/azure/aks/azure-disks-dynamic-pv
+#################################################################################
